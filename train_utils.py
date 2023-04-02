@@ -9,40 +9,12 @@ import pandas as pd
 from typing import Literal
 from tqdm.notebook import tqdm
 
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, classification_report
 
 import wandb
 
 import torch
 from torch.optim.lr_scheduler import StepLR
-
-def create_labels_mapping(dataset: pd.DataFrame()) -> dict():
-    """
-    create label2id and id2label dicts 
-    for mapping between categories and labels
-    Parameters
-    ----------
-        dataset (pd.DataFrame): 
-            dataframe with all content inside
-        
-    Return
-    ------
-        label2id (dict()): 
-            label <-> id mapping
-        id2label (dict()): 
-            id <-> label mapping
-    """
-
-    labels = sorted(list(set(dataset['category_id'])))
-    label2id, id2label = dict(), dict()
-
-    for i, label in enumerate(labels):
-        label2id[label] = str(i)
-        id2label[str(i)] = label
-
-    print('Number of labels:', len(labels))
-
-    return label2id, id2label
 
 def trainer(model, train_loader, valid_loader, loss_function,
             optimizer, scheduler, cfg):
@@ -95,7 +67,7 @@ def trainer(model, train_loader, valid_loader, loss_function,
                                  model=model,
                                  loss_function=loss_function,
                                  optimizer=optimizer,
-                                 device=os.environ['device'])
+                                 device=cfg['device'])
 
         # validation
         valid_loss = 0.0
@@ -103,7 +75,7 @@ def trainer(model, train_loader, valid_loader, loss_function,
         valid_loss, valid_f1 = tester(model=model,
                                         test_loader=valid_loader,
                                         loss_function=loss_function,
-                                        device=os.environ['device'])
+                                        device=cfg['device'])
 
         scheduler.step()
 
@@ -223,7 +195,7 @@ def tester(model, test_loader, loss_function = None,
     F1 = f1_score(real, pred, average='weighted')
 
     if print_stats:
-        print(F1)
+        print(classification_report(real, pred))
 
     if loss_function is not None:
         return loss.cpu().item()/len(test_loader), F1
@@ -245,18 +217,21 @@ def trainer_log(train_loss, valid_loss, valid_f1, epoch, lr, cfg):
     print(f'valid loss on {str(epoch).zfill(3)} epoch: {valid_loss:.6f}')
     print(f'valid f1 score: {valid_f1:.2f}')
 
-def train_pipeline(model, train_dataset, valid_dataset, cfg,
+def train_pipeline(model, train_dataset, valid_dataset, test_dataset, cfg,
                    saved_model=None, to_train=True, to_test=True):
     """
     run training and/or testing process
+
     Parameters
     ----------
         model:
             model for traning and/ot testing
         train_dataset:
             dataset for trainig
+        valid_dataset:
+            dataset for validation
         test_dataset:
-            dataset for testing or validating
+            dataset for testing
         saved_model:
             path to saved checkpoint to resume training
             or to test saved model
@@ -270,7 +245,7 @@ def train_pipeline(model, train_dataset, valid_dataset, cfg,
         trained or tested model
     """
 
-    def make(model, train_dataset, valid_dataset):
+    def make(model, train_dataset, valid_dataset, test_dataset):
         """
         make dataloaders, init optimizers and criterions
         """
@@ -281,14 +256,13 @@ def train_pipeline(model, train_dataset, valid_dataset, cfg,
         validloader = torch.utils.data.DataLoader(valid_dataset, 
                                                   batch_size=cfg.batch_size,
                                                   shuffle=False, num_workers=2)
+        testloader = torch.utils.data.DataLoader(test_dataset, 
+                                                  batch_size=cfg.batch_size,
+                                                  shuffle=False, num_workers=2)
 
         criterion = torch.nn.CrossEntropyLoss()
-        
-        if cfg.optimizer == 'sgd':
-            optimizer = torch.optim.SGD(model.parameters(), lr=cfg.lr)
 
-        else:
-            optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
+        optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
 
         scheduler = StepLR(optimizer, cfg.step_size, cfg.step_gamma)
 
@@ -300,19 +274,19 @@ def train_pipeline(model, train_dataset, valid_dataset, cfg,
     print('config:')
     pretty_print.pprint(cfg)
     print()
-    print('running on device:', os.environ['device'], '\n')
+    print('running on device:', cfg['device'], '\n')
 
     # data and optimization
-    trainloader, validloader,  \
+    trainloader, validloader, testloader, \
         criterion, optimizer, scheduler = make(model, train_dataset,
-                                               valid_dataset)
+                                               valid_dataset, test_dataset)
 
     if to_train:
         trainer(model, trainloader, validloader,
                 criterion, optimizer, scheduler, cfg)
 
     if to_test:
-        tester(model, validloader, print_stats=True, 
-                device=os.environ['device'])
+        tester(model, testloader, print_stats=True, 
+                device=cfg['device'])
 
     return model
