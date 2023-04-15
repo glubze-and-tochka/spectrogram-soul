@@ -39,3 +39,10 @@ poetry add <package>
 ```sh
 pre-commit install --hook-type pre-commit --hook-type pre-push
 ```
+
+
+- To start bot https://t.me/xkm555_bot:
+
+```sh
+python emo_service/api/bot_run.py
+```

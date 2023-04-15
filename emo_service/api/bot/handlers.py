@@ -4,6 +4,8 @@ import subprocess
 from aiogram import Dispatcher
 from aiogram.types import Message, ParseMode
 
+from .inference import predict_emotion
+
 
 async def echo(message: Message):
     """Echo example for test."""
@@ -15,8 +17,8 @@ async def echo(message: Message):
     subprocess.run(["ffmpeg", "-y", "-i", voice_file.name, wav_file])
 
     # Reply with a success message
-
-    await message.reply("Success", parse_mode=ParseMode.HTML)
+    label = await predict_emotion(wav_file)
+    await message.reply(label, parse_mode=ParseMode.HTML)
 
     # Clean up the temporary files
     # os.remove(voice_file.name)
