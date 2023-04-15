@@ -40,6 +40,17 @@ poetry add <package>
 pre-commit install --hook-type pre-commit --hook-type pre-push
 ```
 
+- Add file in source dir with name .env :
+
+```sh
+.env
+```
+
+Add AIOGRAM_API_TOKEN variable to .env file:
+
+```sh
+AIOGRAM_API_TOKEN = {YOUR_SUPER_SECRET_TOKEN}
+```
 
 - To start bot https://t.me/xkm555_bot:
 
