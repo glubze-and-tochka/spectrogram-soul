@@ -1,3 +1,10 @@
+# spectrogram soul
+Audio sentiment classification wrapped in tg bot.
+
+model: Audio Spectragram Transformer - [paper](https://arxiv.org/abs/2104.01778), [model page](https://huggingface.co/abletobetable/spec_soul_ast)
+
+model trained on augmented [dataset](https://huggingface.co/datasets/Aniemore/resd) - [model_ page](https://huggingface.co/abletobetable/spec_soul_ast_aug)
+
 # neuroBot
 
 Bot that will be used as API for NeuroNet that can estimate emotional background of voice message
