@@ -7,13 +7,13 @@ model trained on [dataset](https://huggingface.co/datasets/Aniemore/resd) - [mod
 
 ## AST architecture:
 
-<img src="images/ast_architecture.png" alt="map" width="400"/>
+<img src="ast_architecture.png" alt="map" width="400"/>
 
 ## EDA:
 
-<img src="images/durations.png" alt="map" width="400"/>
+<img src="durations.png" alt="map" width="400"/>
 
-<img src="images/spectrogram.png" alt="map" width="400"/>
+<img src="spectrogram.png" alt="map" width="400"/>
 
 ## Audio augmentations:
 
