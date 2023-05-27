@@ -1,5 +1,6 @@
 from transformers import AutoFeatureExtractor, ASTForAudioClassification
 import torch
+import torch.nn.functional as F
 from librosa import load, resample
 
 
@@ -25,5 +26,9 @@ async def predict_emotion(audio_path):
 
     predicted_class_ids = torch.argmax(logits, dim=-1).item()
     predicted_label = model.config.id2label[predicted_class_ids]
+    
+    # labels with scores
+    scores = F.softmax(logits, dim=1).detach().cpu().numpy()[0]
+    outputs = [{"Emotion": id2label[i], "Score": f"{round(score * 100, 3):.1f}%"} for i, score in enumerate(scores)]
 
-    return predicted_label
+    return predicted_label, outputs
