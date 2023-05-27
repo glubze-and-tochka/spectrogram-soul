@@ -3,7 +3,69 @@ Audio sentiment classification wrapped in tg bot.
 
 model: Audio Spectragram Transformer - [paper](https://arxiv.org/abs/2104.01778), [model page](https://huggingface.co/abletobetable/spec_soul_ast)
 
-model trained on augmented [dataset](https://huggingface.co/datasets/Aniemore/resd) - [model_ page](https://huggingface.co/abletobetable/spec_soul_ast_aug)
+model trained on [dataset](https://huggingface.co/datasets/Aniemore/resd) - [model_ page](https://huggingface.co/abletobetable/spec_soul_ast)
+
+## AST architecture:
+
+<img src="images/ast_architecture.png" alt="map" width="400"/>
+
+## EDA:
+
+<img src="images/durations.png" alt="map" width="400"/>
+
+<img src="images/spectrogram.png" alt="map" width="400"/>
+
+## Audio augmentations:
+
+AddGaussianNoise(
+    min_amplitude=0.001, max_amplitude=0.005, p=0.5)
+
+TimeStretch(
+    min_rate=0.95, max_rate=1.05, p=0.5)
+
+PitchShift(
+    min_semitones=-1, max_semitones=1, p=0.5)
+
+Shift(
+    min_fraction=-0.5, max_fraction=0.5, p=0.5)
+
+TimeMask(
+    min_band_part=0.01, max_band_part=0.1, fade=True, p=0.5)
+
+## Train:
+
+0. just AST: accuracy = 0.60 ([my model](https://huggingface.co/abletobetable/spec_soul_ast))
+
+1.1. get text with Whisper over audios than [rubert tiny ](https://huggingface.co/cointegrated/rubert-tiny2-cedr-emotion-detection) features
+1.2. concat features and classification head:
+
+1.3. head
+KNN:
+{'n_neighbors': 2, 'p': 2, 'weights': 'uniform'}
+accuracy = 0.59
+
+logreg:
+{'solver': 'newton-cholesky', 'C': 75}
+0.625
+
+SVM:
+{'kernel': 'linear', 'C': 20}
+0.6107142857142858
+
+## Results:
+              precision    recall  f1-score   support
+
+           0       0.76      0.84      0.80        44
+           1       0.56      0.62      0.59        37
+           2       0.57      0.57      0.57        40
+           3       0.68      0.67      0.67        45
+           4       0.60      0.57      0.58        44
+           5       0.50      0.55      0.53        38
+           6       0.73      0.50      0.59        32
+
+    accuracy                            0.62       280
+    macro avg       0.63      0.62      0.62       280
+    weighted avg    0.63      0.62      0.62       280
 
 # neuroBot
 
